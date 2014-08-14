@@ -1,7 +1,7 @@
 #!/usr/bin/python
 
 num_of_test = 0 # number of test case (N)
-debug = 1
+debug = 0
 num_N = 0
 num_L = 0
 mat_o = []
@@ -9,8 +9,8 @@ mat_d = []
 def open_read_file():
     # file_name=raw_input()
     #file_name="sample_input.txt"
-    file_name="A-small-practice.in"
-    #file_name="A-large-practice.in"
+    #file_name="A-small-practice.in"
+    file_name="A-large-practice.in"
     fin=open(file_name, 'r')
     return fin
 def find_bits(num):
@@ -58,12 +58,10 @@ while i < num_of_test:
         print mat_o
         print mat_d
     possible = False
-    small = num_L
+    small = num_L+1
     xorg = 0
-    for x in mat_o:
-        check_possibility(x)
-
-    if xorg != 0:
+    check_possibility(mat_o[0])
+    if small != (num_L+1):
         if (debug):
             print 'Case #%d: %d %d %d %d' % ((i+1), num_N, num_L, small, xorg)
         else:
