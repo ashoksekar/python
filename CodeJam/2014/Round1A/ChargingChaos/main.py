@@ -13,6 +13,28 @@ def open_read_file():
     #file_name="A-large-practice.in"
     fin=open(file_name, 'r')
     return fin
+def find_bits(num):
+    c = 0
+    while num:
+        num &= (num-1)
+        c += 1
+    return c
+def check_possibility(val):
+    global mat_d, mat_o
+    global xorg, small
+
+    possible = False
+    for x in mat_d:
+        xor = val ^ x
+        if (small > find_bits(xor)):
+            possible=True
+            for y in mat_o:
+                if not((y ^ xor) in mat_d):
+                    possible=False
+                    break
+            if (possible == True):
+                small = find_bits(xor)
+                xorg = xor
 
 
 fin = open_read_file()
@@ -32,9 +54,21 @@ while i < num_of_test:
         mat_d.append(int(string[x], 2))
     mat_o.sort()
     mat_d.sort()
-    print 'Case #%d: %d %d' % ((i+1), num_N, num_L)
     if (debug):
         print mat_o
         print mat_d
+    possible = False
+    small = num_L
+    xorg = 0
+    for x in mat_o:
+        check_possibility(x)
+
+    if xorg != 0:
+        if (debug):
+            print 'Case #%d: %d %d %d %d' % ((i+1), num_N, num_L, small, xorg)
+        else:
+            print 'Case #%d: %d' % ((i+1), small)
+    else:
+        print 'Case #%d: NOT POSSIBLE' % ((i+1))
     i += 1
 
