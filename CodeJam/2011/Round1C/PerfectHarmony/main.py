@@ -16,19 +16,28 @@ def open_read_file():
 def find_hfreq():
     global num_N, num_L, num_H
     global freq
+
     i = num_L
-    while i <= num_H:
+    while (i >= num_L) and (i <= num_H):
         ans = i
+        itr = itr1 = 2
         for k in freq:
-            if (k > i):
+            if k == 1:
+                continue
+            if ((k > i) and ((k % i) != 0)):
+                while ((k%i) and 
+                       ((i) >= num_L) and ((i) <= num_H)):
+                    i += 1
                 ans = 0
                 break
-            elif ((k < i) and (i % k)):
+            elif ((k < i) and ((i % k) != 0)):
+                while (((k*itr1) < i)):
+                    itr1 += 1
+                i = k * itr1
                 ans = 0
                 break
         if (ans):
             return ans
-        i += 1
     return 0
 
 fin = open_read_file()
