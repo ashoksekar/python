@@ -1,0 +1,17 @@
+7
+xxx
+aca
+abad
+def
+abadefg
+aabcde
+aabghgh
+bbbbbbbbbb
+jabjjjad
+
+4
+aab
+aac
+aacghgh
+aabghgh
+
