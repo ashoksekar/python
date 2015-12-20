@@ -6,14 +6,14 @@ from random import shuffle
 from subprocess import call
 
 #
-#11 1  15 8  
-#10 4  5  0  
-#14 3  6  13 
-#7  2  9  12 
+#0  1  2  3  
+#4  5  6  7  
+#8  9  10 11 
+#12 13 14 15 
 
 debug=True
-MAXSQUARES = 4
-TOTALSQUARES = MAXSQUARES * MAXSQUARES
+NUMROWS = NUMCOLS = 4
+TOTALSQUARES = NUMROWS * NUMCOLS
 matrix = [0 for x in range(TOTALSQUARES)] 
 targetV = 1
 for x in range(TOTALSQUARES):
@@ -21,18 +21,14 @@ for x in range(TOTALSQUARES):
 shuffle(matrix)
 
 def swap(x,y):
-    global matrix,  targetV
-    if (((not checkZeroNeighbor(matrix[x])) and (not
-        checkZeroNeighbor(matrix[y])))):
-        return
-
+    global matrix, targetV
     t = matrix[x]
     matrix[x] = matrix[y]
     matrix[y] = t
     try:
         if (debug):
-            call(["clear"])
-            print 'Unsolved: ', targetV
+            #call(["clear"])
+            print 'Unsolved: ', targetV, isSolved(targetV)
             printMatrix()
             dummy = raw_input()
             #exc_info = sys.exc_info()
@@ -45,184 +41,119 @@ def isComplete():
     for x in range(TOTALSQUARES-1):
         if matrix[x] != (x+1):
             return False
-    return true
-    
+    return True
+def isSolved(val):
+    global matrix
+    if val < 1 or val >= TOTALSQUARES:
+        return False
+    if matrix[val-1] == val:
+        return True
+    return False
+
 def returnUnsolved(target):
     global matrix
     for x in xrange(target-1,-1,-1):
         if matrix[x] != (x+1):
             return x+1
     return 0
-def isSolvedAt(x):
-    global matrix
-    if x < 0 and val >= TOTALSQUARES:
-        return False
-    if matrix[x] == x+1:
-        return True
-    return False
-def isSolved(val):
-    global matrix
-    if val < 1 and val >= TOTALSQUARES:
-        return False
-    if matrix[val-1] == val:
-        return True
-    return False
 
-def checkZeroNeighbor(target):
-    global matrix
-    pos = matrix.index(target)
-    if (row(pos-1) == row(pos) and
-            matrix[pos-1] == 0):
-        return True
-    elif ((pos-MAXSQUARES) >= 0 and
-            matrix[pos-MAXSQUARES] == 0):
-        return True
-    elif (row(pos+1) == row(pos) and 
-            matrix[pos+1] == 0):
-        return True
-    elif ((pos+MAXSQUARES) < TOTALSQUARES and
-            matrix[pos+MAXSQUARES] == 0):
-        return True
-    return False
 def row(x):
-    return x/MAXSQUARES
+    return x/NUMROWS
 def col(x):
-    return x % MAXSQUARES
+    return x % NUMCOLS
 
-
-def in_middleH(x,y,t):
-    if (row(x) != row(y)):
-        return False
-    if (col(t) >= col(x) and col(t) <= col(y)):
+def is_neighbor(x,y):
+    if row(y) == row(x) and y == x+1:
         return True
-    if (col(t) >= col(y) and col(t) <= col(x)):
+    elif row(y) == row(x) and y == x-1:
         return True
-
-def in_middleV(x,y,t):
-    if (col(x) != col(y)):
-        return False
-    if (row(t) >= row(x) and row(t) <= row(y)):
+    elif col(y) == col(x) and y == x-NUMCOLS:
         return True
-    if (row(t) >= row(y) and row(t) <= row(x)):
+    elif col(y) == col(x) and y == x+NUMCOLS:
         return True
     return False
-def distance(x,y):
-    global matrix
-    return abs(row(x)-row(y))+abs(col(x)-col(y))
-def isSolvedRoute(x,y):
-    global matrix
-    while row(x) != row(y):
-        if (row(x) < row(y)):
-            x += MAXSQUARES
-        elif (row(x) < row(y)):
-            x -= MAXSQUARES
-        if isSolvedAt(x):
-            return True
-    while col(x) != col(y):
-        if (col(x) < col(y)):
-            x += 1
-        elif (col(x) < col(y)):
-            x -= 1
-        if isSolvedAt(x):
-            return True
-    return False
 
-def moveZeroNearTargetV(target):
-    global matrix
-    ret = False
-    t = matrix.index(target)
-    z = matrix.index(0)
-    at = target-1
-    if (row(t) > (row(at))):
-        tg = t - MAXSQUARES
-    elif (row(t) < (row(at))):
-        tg = t + MAXSQUARES
+def build_graph():
+    global graph
+    for i in xrange(0,TOTALSQUARES):
+        graph[i] = []
+        for j in xrange(0, TOTALSQUARES):
+            if is_neighbor(i,j):
+                graph[i].append(j)
+def find_all_paths(graph, start, end, path=[]):
+    path = path + [start]
+    if start == end:
+        return [path]
+    if not graph.has_key(start):
+        return []
+    paths = []
+    for node in graph[start]:
+        if node not in path:
+            newpaths = find_all_paths(graph, node, end, path)
+            for newpath in newpaths:
+                paths.append(newpath)
+    return paths
+
+graph=dict()
+build_graph()
+paths = []
+for i in xrange(0,TOTALSQUARES):
+    paths.append([])
+    for j in xrange(i,TOTALSQUARES):
+        if i == j:
+            continue
+        p = find_all_paths(graph,i,j)
+        p.sort(key = lambda x:len(x))
+        paths[i].append(filter(lambda x: len(x) <= 3*NUMROWS, p))
+
+def choose_path(src, dest, target):
+    global matrix, paths
+    zidx = matrix.index(src)
+    idx = matrix.index(dest)
+    if zidx < idx:
+        x = zidx
+        y = idx-(x+1)
     else:
-        tg = t
-        if (row(z) == row(t)):
-            return moveZeroNearTargetH(target)
-    if (isSolvedRoute(z,tg)):
-        return moveZeroNearTargetH(target)
-    if in_middleV(z,tg,t):
-        if col(z+1) and (distance(target-1,z+1) <= distance(target-1,z-1)):
-            swap(z,z+1)
-        else:
-            swap(z,z-1)
-        return moveZeroNearTargetV(target)
-    if (row(z) > row(tg)):
-        while row(z) != row(tg):
-            swap(z, z-MAXSQUARES)
-            z = matrix.index(0)
-        ret = True
-    elif (row(z) < row(tg)):
-        while row(z) != row(tg):
-            swap(z, z+MAXSQUARES)
-            z = matrix.index(0)
-        ret = True
-    else:
-        ret = False
-
-    while col(z) != col(tg):
-        if (col(z) > col(tg)):
-            swap(z,z-1)
-        else:
-            swap(z,z+1)
-        z = matrix.index(0)
-    return True
-
-def rotate(z):
-    global matrix
-    while col(z):
-        swap(z,z-1)
-        z = matrix.index(0)
-    assert(row(z))
-    swap(z,z-MAXSQUARES)
-    return
-
-def moveZeroNearTargetH(target):
-    global matrix
-    t = matrix.index(target)
-    z = matrix.index(0)
-    at = target-1
-
-    if (col(t) > (col(at))):
-        tg = t - 1
-    elif (col(t) < (col(at))):
-        tg = t + 1
-    else:
-        tg = t
-    if in_middleH(z,tg,t):
-        if ((z+MAXSQUARES) < TOTALSQUARES): 
-            swap(z,z+MAXSQUARES)
-        elif (z-MAXSQUARES) >= 0: 
-            swap(z,z-MAXSQUARES)
-        else:
-            assert(1)
-        return moveZeroNearTargetH(target)
-
-    if tg != t:
-        if (col(z) > col(tg)):
-            while col(z) != col(tg):
-                swap(z,z-1)
-                z = matrix.index(0)
-        elif (col(z) < col(tg)):
-            while col(z) != col(tg):
-                swap(z,z+1)
-                z = matrix.index(0)
-    while row(z) != row(tg):
-        if (row(z) > row(tg)):
-            swap(z,z-MAXSQUARES)
-        else:
-            swap(z,z+MAXSQUARES)
-        z = matrix.index(0)
-    return True
-
+        x = idx
+        y = zidx-(x+1)
+    chsn = 0
+    while chsn < len(paths[x][y]):
+        pos = True
+        for i in paths[x][y][chsn]:
+            if i == zidx:
+                continue
+            if ((matrix[i] and (matrix[i] == target)) or 
+                    (matrix[i] and (matrix[i] <= target) and (matrix[i] == i+1)) or 
+                    ((row(i) == row(target-1)) and matrix[i] == i+1)):
+                pos = False
+                break
+        if pos:
+            break
+        chsn += 1
+    if (chsn == len(paths[x][y])):
+        chsn = 0
+        while chsn < len(paths[x][y]):
+            gotit = True
+            for i in xrange(row(target-1)*NUMROWS,target-1):
+                if i not in paths[x][y][chsn]:
+                    gotit = False
+                    break
+            if gotit:
+                break
+            chsn += 1
+    assert(chsn < len(paths[x][y]))
+    if paths[x][y][chsn][0] != matrix.index(src):
+        paths[x][y][chsn].reverse()
+        
+    return paths[x][y][chsn]
+    #for rix in paths[x][y]:
+    #    for rixi in rix:
 
 def printMatrix():
     global matrix
     i = 0
     while i < TOTALSQUARES:
-        if i % MAXSQUARES == 0:
+        if i % NUMROWS == 0:
             print ""
         print matrix[i],
         if (matrix[i] < 10):
@@ -230,29 +161,36 @@ def printMatrix():
         i += 1
     print ""
 
-
 def solve():
-    global matrix, targetV
+    global matrix
+    global targetV
     if isComplete() == True:
         return
     target = 1
     while True:
-        if isSolved(target):
+        if isSolved(target) == True:
             targetV = returnUnsolved(target)
             if targetV == 0:
                 target = target + 1
                 continue
             else:
                 target = targetV
+        print 'Target changed to: ', target
         targetV = target
-        ret = moveZeroNearTargetV(target)
-        if (distance(matrix.index(0), target-1) < 
-                distance(matrix.index(target), target-1)):
-            swap(matrix.index(0), matrix.index(target))
-
+        while (isSolved(target) == False):
+            p1 = choose_path(target, matrix[target-1], target)
+            for x in p1:
+                if x == matrix.index(target):
+                    continue
+                if matrix.index(0) != x:
+                    for y in choose_path(0,matrix[x], target):
+                        if y == matrix.index(0):
+                            continue
+                        swap(y,matrix.index(0))
+                swap(matrix.index(0), matrix.index(target))
 
 
 
 printMatrix()
 solve()
-
+            
