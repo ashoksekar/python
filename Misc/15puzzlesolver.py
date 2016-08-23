@@ -22,6 +22,7 @@ shuffle(matrix)
 
 def swap(x,y):
     global matrix, targetV
+    assert (is_neighbor(x,y))
     t = matrix[x]
     matrix[x] = matrix[y]
     matrix[y] = t
@@ -104,7 +105,7 @@ for i in xrange(0,TOTALSQUARES):
             continue
         p = find_all_paths(graph,i,j)
         p.sort(key = lambda x:len(x))
-        paths[i].append(filter(lambda x: len(x) <= 3*NUMROWS, p))
+        paths[i].append(filter(lambda x: len(x) <= 4*NUMROWS, p))
 
 def choose_path(src, dest, target):
     global matrix, paths
@@ -134,14 +135,25 @@ def choose_path(src, dest, target):
         chsn = 0
         while chsn < len(paths[x][y]):
             gotit = True
+            if ((src == 0) and matrix[i] and (matrix[i] == target)):
+                gotit = False
+                chsn += 1
+                continue
+            if len(range(row(target-1)*NUMROWS, target-1)) == 0:
+                gotit = False
+                chsn += 1
+                continue
             for i in xrange(row(target-1)*NUMROWS,target-1):
-                if i not in paths[x][y][chsn]:
+                if ((i not in paths[x][y][chsn]) or 
+                        ((src == 0) and (matrix.index(target) in paths[x][y][chsn]))):
                     gotit = False
                     break
             if gotit:
                 break
             chsn += 1
-    assert(chsn < len(paths[x][y]))
+    if not (chsn < len(paths[x][y])):
+        print 'src: ', src, 'dest: ', dest, 'target: ', target
+        assert(0)
     if paths[x][y][chsn][0] != matrix.index(src):
         paths[x][y][chsn].reverse()
         
